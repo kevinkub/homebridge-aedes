@@ -20,4 +20,4 @@ All configuration can be done through the Homebridge UI.
 
 ## Tools 
 
-The heavylifting of this plugin is done by [Aedes](https://github.com/moscajs/aedes), which is a complete implementation of an MQTT broker in Node.js. Data can be persisted to disk using [aedes-persistence-nedb](https://github.com/ovhemert/aedes-persistence-nedb) to make it possible to restart Homebridge or the device it is running on without information loss.
+The heavy lifting of this plugin is done by [Aedes](https://github.com/moscajs/aedes), which is a complete implementation of an MQTT broker in Node.js. Data can be persisted to disk using [aedes-persistence-nedb](https://github.com/ovhemert/aedes-persistence-nedb) to make it possible to restart Homebridge or the device it is running on without information loss.
