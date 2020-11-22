@@ -12,7 +12,7 @@ This plugin for [Homebridge](https://homebridge.io/) allows you to host an embed
 
 ## Installation
 
-Sign in to your Homebridge, got to Plugins and search for "Aedes embedded MQTT Broker". Follow the instructions to install.
+Sign in to your Homebridge, got to Plugins and search for "Homebridge Aedes". Follow the instructions to install.
 
 ## Configuration
 
