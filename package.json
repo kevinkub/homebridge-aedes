@@ -26,7 +26,8 @@
     "homebridge-plugin"
   ],
   "dependencies": {
-    "aedes": "^0.44.0"
+    "aedes": "^0.44.0",
+    "aedes-persistence-nedb": "^2.0.3"
   },
   "devDependencies": {
     "@types/node": "^14.14.6",

@@ -9,8 +9,85 @@
         "title": "Name",
         "type": "string",
         "required": true,
-        "default": "Example Dynamic Platform"
+        "default": "Aedes MQTT",
+        "placeholder": "Aedes MQTT"
+      },
+      "persistence": {
+        "title": "Persist data on disk",
+        "type": "boolean"
+      },
+      "port": {
+        "title": "Port",
+        "type": "string",
+        "placeholder": "1883"
+      },
+      "host": {
+        "title": "Host",
+        "type": "string",
+        "placeholder": "0.0.0.0"
+      },
+      "auth": {
+        "title": "Authentication",
+        "type": "object",
+        "properties": {
+          "isEnabled": {
+            "title": "Enable",
+            "type": "boolean"
+          },
+          "username": {
+            "title": "Username",
+            "type": "string",
+            "condition": {
+              "functionBody": "return model.auth.isEnabled;"
+            }
+          },
+          "password": {
+            "title": "Password",
+            "type": "string",
+            "condition": {
+              "functionBody": "return model.auth.isEnabled;"
+            }
+          }
+        }
+      },
+      "tls": {
+        "title": "Encryption",
+        "type": "object",
+        "properties": {
+          "isEnabled": {
+            "title": "Use TLS",
+            "type": "boolean"
+          },
+          "pubKey": {
+            "title": "Public Key",
+            "type": "string",
+            "condition": {
+              "functionBody": "return model.tls.isEnabled;"
+            }
+          },
+          "privKey": {
+            "title": "Private Key",
+            "type": "string",
+            "condition": {
+              "functionBody": "return model.tls.isEnabled;"
+            }
+          }
+        }
       }
     }
-  }
+  },
+  "layout": [
+    { "key": "name" },
+    { "key": "persistence" },
+    { "key": "port" },
+    { "key": "host" },
+    { "key": "auth" },
+    { "key": "auth.isEnabled" },
+    { "key": "auth.username" },
+    { "key": "auth.password" },
+    { "key": "tls" },
+    { "key": "tls.isEnabled" },
+    { "key": "tls.pubKey", "type": "textarea" },
+    { "key": "tls.privKey", "type": "textarea" }
+  ]
 }
