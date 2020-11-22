@@ -1,121 +1,56 @@
-import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service, Characteristic } from 'homebridge';
-
-import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
-import { ExamplePlatformAccessory } from './platformAccessory';
+import { API, IndependentPlatformPlugin, Logging, APIEvent, PlatformConfig } from 'homebridge';
+import { HomebridgeAedesOptions } from './homebridgeAedesOptions';
+import { Server as AedesServer, Aedes } from 'aedes';
+import { createServer as NetServer, Server } from 'net';
 
 /**
- * HomebridgePlatform
- * This class is the main constructor for your plugin, this is where you should
- * parse the user config and discover/register accessories with Homebridge.
+ * Aedes Homebridge Platform
+ * Parses configuration and starts Aedes MQTT server.
  */
-export class ExampleHomebridgePlatform implements DynamicPlatformPlugin {
-  public readonly Service: typeof Service = this.api.hap.Service;
-  public readonly Characteristic: typeof Characteristic = this.api.hap.Characteristic;
+export class AedesHomebridgePlatform implements IndependentPlatformPlugin {
 
-  // this is used to track restored cached accessories
-  public readonly accessories: PlatformAccessory[] = [];
+  private readonly log: Logging;
+  private readonly api: API;
+  private readonly options: HomebridgeAedesOptions;
+  private aedes?: Aedes;
+  private server?: Server;
 
-  constructor(
-    public readonly log: Logger,
-    public readonly config: PlatformConfig,
-    public readonly api: API,
-  ) {
-    this.log.debug('Finished initializing platform:', this.config.name);
-
-    // When this event is fired it means Homebridge has restored all cached accessories from disk.
-    // Dynamic Platform plugins should only register new accessories after this event was fired,
-    // in order to ensure they weren't added to homebridge already. This event can also be used
-    // to start discovery of new accessories.
-    this.api.on('didFinishLaunching', () => {
-      log.debug('Executed didFinishLaunching callback');
-      // run the method to discover / register your devices as accessories
-      this.discoverDevices();
-    });
+  /**
+   * Instantiates a new instance.
+   * @param log Logger to be used for logging
+   * @param config Plugin configuration
+   * @param api API to work on
+   */
+  constructor(log: Logging, config: PlatformConfig, api: API) {
+    this.log = log;
+    this.api = api;
+    // Define defaults for Aedes
+    const defaults: HomebridgeAedesOptions = {
+      port: 1883,
+    };
+    // Merge defaults with overrides
+    this.options = Object.assign(defaults, config);
+    // Register lifecycle events
+    this.api.on(APIEvent.DID_FINISH_LAUNCHING, this.startServer.bind(this));
+    this.api.on(APIEvent.SHUTDOWN, this.stopServer.bind(this));
   }
 
   /**
-   * This function is invoked when homebridge restores cached accessories from disk at startup.
-   * It should be used to setup event handlers for characteristics and update respective values.
+   * Starts the Aedis server
    */
-  configureAccessory(accessory: PlatformAccessory) {
-    this.log.info('Loading accessory from cache:', accessory.displayName);
-
-    // add the restored accessory to the accessories cache so we can track if it has already been registered
-    this.accessories.push(accessory);
+  startServer() {
+    this.log('Starting Aedes MQTT broker.');
+    this.aedes = AedesServer(this.options);
+    this.server = NetServer(this.aedes.handle);
+    this.server.listen(this.options.port, this.options.host);
   }
 
   /**
-   * This is an example method showing how to register discovered accessories.
-   * Accessories must only be registered once, previously created accessories
-   * must not be registered again to prevent "duplicate UUID" errors.
+   * Stops the Aedis server
    */
-  discoverDevices() {
-
-    // EXAMPLE ONLY
-    // A real plugin you would discover accessories from the local network, cloud services
-    // or a user-defined array in the platform config.
-    const exampleDevices = [
-      {
-        exampleUniqueId: 'ABCD',
-        exampleDisplayName: 'Bedroom',
-      },
-      {
-        exampleUniqueId: 'EFGH',
-        exampleDisplayName: 'Kitchen',
-      },
-    ];
-
-    // loop over the discovered devices and register each one if it has not already been registered
-    for (const device of exampleDevices) {
-
-      // generate a unique id for the accessory this should be generated from
-      // something globally unique, but constant, for example, the device serial
-      // number or MAC address
-      const uuid = this.api.hap.uuid.generate(device.exampleUniqueId);
-
-      // see if an accessory with the same uuid has already been registered and restored from
-      // the cached devices we stored in the `configureAccessory` method above
-      const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
-
-      if (existingAccessory) {
-        // the accessory already exists
-        if (device) {
-          this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
-
-          // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
-          // existingAccessory.context.device = device;
-          // this.api.updatePlatformAccessories([existingAccessory]);
-
-          // create the accessory handler for the restored accessory
-          // this is imported from `platformAccessory.ts`
-          new ExamplePlatformAccessory(this, existingAccessory);
-          
-          // update accessory cache with any changes to the accessory details and information
-          this.api.updatePlatformAccessories([existingAccessory]);
-        } else if (!device) {
-          // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, eg.:
-          // remove platform accessories when no longer present
-          this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [existingAccessory]);
-          this.log.info('Removing existing accessory from cache:', existingAccessory.displayName);
-        }
-      } else {
-        // the accessory does not yet exist, so we need to create it
-        this.log.info('Adding new accessory:', device.exampleDisplayName);
-
-        // create a new accessory
-        const accessory = new this.api.platformAccessory(device.exampleDisplayName, uuid);
-
-        // store a copy of the device object in the `accessory.context`
-        // the `context` property can be used to store any data about the accessory you may need
-        accessory.context.device = device;
-
-        // create the accessory handler for the newly create accessory
-        // this is imported from `platformAccessory.ts`
-        new ExamplePlatformAccessory(this, accessory);
-
-        // link the accessory to your platform
-        this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
-      }
-    }
+  stopServer() {
+    this.log('Stopping Aedes MQTT broker.');
+    this.server?.close();
   }
+
 }
