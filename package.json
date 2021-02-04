@@ -1,7 +1,7 @@
 {
   "displayName": "Aedes embedded MQTT Broker",
   "name": "homebridge-aedes",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Enables the usage of Aedes MQTT broker within Homebridge.",
   "license": "Apache-2.0",
   "repository": {

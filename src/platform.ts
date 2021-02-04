@@ -45,7 +45,7 @@ export class AedesHomebridgePlatform implements IndependentPlatformPlugin {
     // Persistence
     if(config.persistence) {
       const persistence = new NedbPersistence({
-        path: this.api.user.persistPath() + '/aedes-mqtt',
+        path: this.api.user.persistPath(),
       });
       options.persistence = persistence;
     }
